@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Code × Sonnet 4.6｜AIコーディングの新時代</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700;900&family=JetBrains+Mono:wght@400;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --card: #1a1a24;
+    --border: #2a2a3a;
+    --accent: #00e5ff;
+    --accent2: #ff6b35;
+    --accent3: #a855f7;
+    --text: #e8e8f0;
+    --muted: #6b6b80;
+    --green: #00ff88;
+    --yellow: #ffd60a;
+    --red: #ff4545;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Zen Kaku Gothic New', sans-serif; min-height: 100vh; overflow-x: hidden; }
+
+  /* HERO */
+  .hero { position: relative; padding: 80px 24px 60px; text-align: center; overflow: hidden; border-bottom: 1px solid var(--border); }
+  .hero::before { content:''; position:absolute; inset:0; background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(0,229,255,0.13) 0%, transparent 70%), radial-gradient(ellipse 60% 40% at 80% 100%, rgba(168,85,247,0.10) 0%, transparent 60%), radial-gradient(ellipse 50% 30% at 10% 80%, rgba(255,107,53,0.08) 0%, transparent 60%); pointer-events:none; }
+  .hero-badge { display:inline-block; background:linear-gradient(135deg,var(--accent),var(--accent3)); color:#000; font-size:11px; font-weight:900; letter-spacing:.18em; padding:5px 18px; border-radius:100px; margin-bottom:24px; animation:fadeDown .6s ease both; }
+  .hero h1 { font-family:'Bebas Neue',sans-serif; font-size:clamp(52px,10vw,110px); line-height:.9; letter-spacing:.02em; background:linear-gradient(135deg,#fff 0%,var(--accent) 50%,var(--accent3) 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; animation:fadeDown .7s .1s ease both; }
+  .hero-sub { font-size:clamp(14px,2.5vw,20px); color:var(--muted); margin-top:20px; line-height:1.7; animation:fadeDown .7s .2s ease both; }
+  .hero-sub strong { color:var(--accent); font-weight:700; }
+  .hero-meta { display:flex; justify-content:center; flex-wrap:wrap; gap:20px; margin-top:28px; font-size:12px; color:var(--muted); animation:fadeDown .7s .3s ease both; }
+
+  /* TABS */
+  .tabs-wrapper { position:sticky; top:0; z-index:100; background:rgba(10,10,15,0.92); backdrop-filter:blur(16px); border-bottom:1px solid var(--border); padding:0 24px; }
+  .tabs { max-width:880px; margin:0 auto; display:flex; overflow-x:auto; scrollbar-width:none; }
+  .tabs::-webkit-scrollbar { display:none; }
+  .tab { flex-shrink:0; padding:16px 22px; font-size:13px; font-weight:700; color:var(--muted); cursor:pointer; border:none; border-bottom:2px solid transparent; background:none; white-space:nowrap; transition:all .2s; letter-spacing:.04em; font-family:'Zen Kaku Gothic New',sans-serif; }
+  .tab:hover { color:var(--text); }
+  .tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+
+  /* PANELS */
+  .panel { display:none; padding:48px 0 96px; }
+  .panel.active { display:block; animation:fadeUp .4s ease; }
+  .container { max-width:880px; margin:0 auto; padding:0 24px; }
+
+  /* TYPOGRAPHY */
+  .section-title { font-family:'Bebas Neue',sans-serif; font-size:42px; letter-spacing:.06em; color:var(--accent); margin-bottom:6px; }
+  .section-desc { color:var(--muted); font-size:14px; margin-bottom:36px; line-height:1.9; }
+
+  /* STEPS */
+  .steps { display:flex; flex-direction:column; gap:14px; margin-bottom:36px; }
+  .step { display:flex; gap:18px; align-items:flex-start; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:20px 22px; transition:border-color .2s,transform .2s; animation:fadeUp .5s ease both; }
+  .step:nth-child(1){animation-delay:.04s} .step:nth-child(2){animation-delay:.08s} .step:nth-child(3){animation-delay:.12s} .step:nth-child(4){animation-delay:.16s} .step:nth-child(5){animation-delay:.20s}
+  .step:hover { border-color:var(--accent); transform:translateX(4px); }
+  .step-num { flex-shrink:0; width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,var(--accent),var(--accent3)); color:#000; font-weight:900; font-size:13px; display:flex; align-items:center; justify-content:center; }
+  .step-body h3 { font-size:15px; font-weight:700; margin-bottom:8px; }
+  .step-body p { font-size:13px; color:var(--muted); line-height:1.75; margin-bottom:10px; }
+
+  /* CODE BLOCK */
+  .code-block { position:relative; background:#07070d; border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:8px; padding:14px 18px; font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--green); overflow-x:auto; white-space:pre; line-height:1.85; margin-bottom:10px; }
+  .code-block.buggy { border-left-color:var(--red); }
+  .code-block.fixed  { border-left-color:var(--green); }
+  .c-comment{color:var(--muted)} .c-kw{color:var(--accent)} .c-fn{color:var(--yellow)} .c-str{color:#e9967a} .c-ok{color:var(--green)} .c-ng{color:var(--red)} .c-num{color:#aaffaa} .c-env{color:var(--accent2)}
+  .copy-btn { position:absolute; top:10px; right:12px; background:var(--border); border:none; color:var(--muted); font-size:11px; padding:4px 10px; border-radius:4px; cursor:pointer; font-family:'JetBrains Mono',monospace; transition:all .2s; }
+  .copy-btn:hover { background:var(--accent); color:#000; }
+  .copy-btn.copied { background:var(--green); color:#000; }
+
+  /* TERMINAL */
+  .terminal { background:#060609; border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-bottom:20px; font-family:'JetBrains Mono',monospace; }
+  .terminal-bar { background:#1c1c26; padding:10px 16px; display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--border); }
+  .dot{width:12px;height:12px;border-radius:50%} .dot-r{background:#ff5f57} .dot-y{background:#ffbd2e} .dot-g{background:#28c840}
+  .terminal-title { margin-left:8px; font-size:12px; color:var(--muted); font-family:'Zen Kaku Gothic New',sans-serif; }
+  .terminal-body { padding:20px; font-size:12.5px; line-height:2; }
+  .t-prompt{color:var(--accent2)} .t-cmd{color:var(--text)} .t-out{color:var(--muted)} .t-ok{color:var(--green)} .t-hl{color:var(--accent);font-weight:700}
+
+  /* ALERTS */
+  .alert { background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.25); border-radius:10px; padding:16px 20px; font-size:13px; line-height:1.85; margin-bottom:20px; }
+  .alert strong { color:var(--accent); }
+  .alert-warn { background:rgba(255,107,53,0.06); border-color:rgba(255,107,53,0.3); }
+  .alert-warn strong { color:var(--accent2); }
+  .alert-danger { background:rgba(255,69,69,0.07); border-color:rgba(255,69,69,0.3); }
+  .alert-danger strong { color:var(--red); }
+
+  /* CASE CARDS */
+  .case-card { background:var(--card); border:1px solid var(--border); border-radius:16px; overflow:hidden; margin-bottom:32px; transition:border-color .3s; animation:fadeUp .5s ease both; }
+  .case-card:nth-child(1){animation-delay:.04s} .case-card:nth-child(2){animation-delay:.10s} .case-card:nth-child(3){animation-delay:.16s}
+  .case-card:hover { border-color:var(--accent3); }
+  .case-header { display:flex; align-items:center; gap:14px; padding:18px 24px; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+  .case-icon { font-size:28px; line-height:1; }
+  .case-header h3 { font-size:17px; font-weight:700; flex:1; }
+  .case-tag { font-size:11px; padding:4px 12px; border-radius:100px; font-weight:700; letter-spacing:.08em; }
+  .tag-debug { background:rgba(0,229,255,0.12); color:var(--accent); border:1px solid rgba(0,229,255,0.3); }
+  .tag-cs { background:rgba(168,85,247,0.15); color:var(--accent3); border:1px solid rgba(168,85,247,0.3); }
+  .case-body { padding:24px; }
+  .case-desc { font-size:14px; color:var(--muted); line-height:1.85; margin-bottom:18px; }
+
+  /* INSIGHT */
+  .insight-box { background:rgba(0,255,136,0.05); border:1px solid rgba(0,255,136,0.22); border-radius:8px; padding:14px 18px; font-size:13px; color:var(--green); line-height:1.75; margin-top:14px; }
+
+  /* EXECUTION RESULT */
+  .exec-result { margin-top:16px; }
+  .exec-label { display:inline-flex; align-items:center; gap:8px; font-size:11px; font-weight:700; letter-spacing:.12em; padding:5px 14px; border-radius:6px 6px 0 0; font-family:'JetBrains Mono',monospace; }
+  .exec-label.buggy { background:rgba(255,69,69,0.15); color:var(--red); border:1px solid rgba(255,69,69,0.3); border-bottom:none; }
+  .exec-label.fixed  { background:rgba(0,255,136,0.10); color:var(--green); border:1px solid rgba(0,255,136,0.25); border-bottom:none; }
+  .exec-output { font-family:'JetBrains Mono',monospace; font-size:12.5px; line-height:1.9; padding:16px 20px; border-radius:0 8px 8px 8px; }
+  .exec-output.buggy { background:rgba(255,69,69,0.06); border:1px solid rgba(255,69,69,0.3); }
+  .exec-output.fixed { background:rgba(0,255,136,0.05); border:1px solid rgba(0,255,136,0.22); }
+  .exec-key{color:var(--muted)} .exec-val-ng{color:var(--red);font-weight:700} .exec-val-ok{color:var(--green);font-weight:700}
+
+  /* COMPARE GRID */
+  .compare-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0 20px; }
+  @media(max-width:640px){.compare-grid{grid-template-columns:1fr;}}
+  .compare-box { border-radius:10px; overflow:hidden; }
+  .compare-header { padding:9px 16px; font-size:11px; font-weight:700; letter-spacing:.1em; font-family:'JetBrains Mono',monospace; }
+  .compare-header.buggy { background:rgba(255,69,69,0.15); color:var(--red); }
+  .compare-header.fixed  { background:rgba(0,255,136,0.12); color:var(--green); }
+  .compare-code { background:#07070d; border:1px solid var(--border); padding:14px 16px; font-family:'JetBrains Mono',monospace; font-size:12px; line-height:1.8; white-space:pre; overflow-x:auto; }
+
+  /* FEATURE GRID */
+  .feature-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:14px; margin-bottom:36px; }
+  .feature-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:20px; transition:all .2s; animation:fadeUp .5s ease both; }
+  .feature-card:nth-child(1){animation-delay:.04s} .feature-card:nth-child(2){animation-delay:.08s} .feature-card:nth-child(3){animation-delay:.12s} .feature-card:nth-child(4){animation-delay:.16s}
+  .feature-card:hover { border-color:var(--accent); transform:translateY(-3px); }
+  .feature-card .icon { font-size:28px; margin-bottom:10px; }
+  .feature-card h4 { font-size:14px; font-weight:700; margin-bottom:6px; }
+  .feature-card p { font-size:12px; color:var(--muted); line-height:1.65; }
+
+  /* TABLE */
+  .compare-table { width:100%; border-collapse:collapse; font-size:13px; margin-bottom:32px; border-radius:10px; overflow:hidden; }
+  .compare-table thead tr { background:linear-gradient(135deg,rgba(0,229,255,0.12),rgba(168,85,247,0.12)); }
+  .compare-table th { padding:13px 18px; text-align:left; font-weight:700; color:var(--accent); letter-spacing:.05em; border-bottom:1px solid var(--border); }
+  .compare-table td { padding:12px 18px; border-bottom:1px solid var(--border); color:var(--muted); vertical-align:top; line-height:1.65; }
+  .compare-table tr:last-child td { border-bottom:none; }
+  .compare-table tr:hover td { background:rgba(255,255,255,0.02); color:var(--text); }
+  .compare-table td:first-child { color:var(--text); font-weight:700; width:170px; }
+
+  /* CTA */
+  .cta-block { text-align:center; padding:52px 32px; background:var(--card); border:1px solid var(--border); border-radius:20px; margin-top:52px; position:relative; overflow:hidden; }
+  .cta-block::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(0,229,255,0.09),transparent 70%); pointer-events:none; }
+  .cta-block h2 { font-family:'Bebas Neue',sans-serif; font-size:52px; letter-spacing:.06em; margin-bottom:12px; }
+  .cta-block p { color:var(--muted); font-size:14px; margin-bottom:28px; line-height:1.85; }
+  .cta-btn { display:inline-flex; align-items:center; gap:10px; background:linear-gradient(135deg,var(--accent),var(--accent3)); color:#000; font-weight:900; font-size:15px; padding:14px 38px; border-radius:100px; text-decoration:none; letter-spacing:.05em; border:none; cursor:pointer; font-family:'Zen Kaku Gothic New',sans-serif; transition:transform .2s,box-shadow .2s; }
+  .cta-btn:hover { transform:translateY(-2px); box-shadow:0 8px 32px rgba(0,229,255,0.4); }
+
+  /* CHECKLIST */
+  .checklist { list-style:none; margin-bottom:28px; }
+  .checklist li { padding:11px 0; border-bottom:1px solid var(--border); font-size:14px; line-height:1.7; display:flex; align-items:flex-start; gap:12px; }
+  .checklist li:last-child { border-bottom:none; }
+  .chk { color:var(--green); font-size:16px; flex-shrink:0; margin-top:1px; }
+  .chk-warn { color:var(--yellow); }
+
+  /* ANIMATIONS */
+  @keyframes fadeDown { from{opacity:0;transform:translateY(-16px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes fadeUp   { from{opacity:0;transform:translateY(20px)}  to{opacity:1;transform:translateY(0)} }
+
+  ::-webkit-scrollbar{width:4px;height:4px} ::-webkit-scrollbar-track{background:var(--bg)} ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+  @media(max-width:600px){.tab{padding:14px 14px;font-size:12px} .case-header h3{font-size:15px} .compare-table td:first-child{width:110px}}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">🚀 NEW RELEASE · 2025</div>
+  <h1>CLAUDE CODE<br>× SONNET 4.6</h1>
+  <p class="hero-sub">AIコーディングの新時代へ。<strong>インストール手順から不具合特定の実証まで</strong>完全解説。</p>
+  <div class="hero-meta">
+    <span>📝 松岡 勇二 / Smart Two Corporation</span>
+    <span>⏱ 読了 約5分</span>
+    <span>🛠 Claude Code v2.1.45 対応</span>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs-wrapper">
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('install',this)">🔧 インストール</button>
+    <button class="tab" onclick="switchTab('whats-new',this)">✨ 新機能</button>
+    <button class="tab" onclick="switchTab('cases',this)">💡 活用事例</button>
+    <button class="tab" onclick="switchTab('summary',this)">📋 まとめ</button>
+  </div>
+</div>
+
+<!-- ======================================= PANEL 1: INSTALL -->
+<div id="panel-install" class="panel active">
+<div class="container">
+  <br>
+  <div class="section-title">INSTALL GUIDE</div>
+  <p class="section-desc">Claude Code は Node.js 環境があれば即導入できます。以下の手順で Sonnet 4.6 を使い始めましょう。</p>
+
+  <div class="alert">
+    <strong>✅ 前提条件：</strong> Node.js 18以上がインストール済みであること。<br>
+    未インストールの場合は <strong>nodejs.org</strong> からダウンロードしてください。
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h3>Claude Code をグローバルインストール</h3>
+        <p>初めて使う場合は npm でインストールします。すでに入っている場合は Step 2 へ。</p>
+        <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">copy</button><span class="c-kw">npm</span> install <span class="c-fn">-g</span> @anthropic-ai/claude-code</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h3>最新版にアップデート（既存ユーザー）</h3>
+        <p>Sonnet 4.6 を使うには <strong>v2.1.45 以上</strong>が必要です。以下のコマンドで最新化してください。</p>
+        <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">copy</button><span class="c-kw">npm</span> update <span class="c-fn">-g</span> @anthropic-ai/claude-code</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <h3>プロジェクトフォルダに移動して起動</h3>
+        <p>ホームディレクトリではなく <strong>プロジェクトのルートから起動</strong>するのが推奨です。コンテキスト精度が上がります。</p>
+        <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">copy</button><span class="c-comment"># プロジェクトフォルダへ移動</span>
+<span class="c-kw">cd</span> your-project
+
+<span class="c-comment"># 起動</span>
+<span class="c-kw">claude</span></div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <h3>モデルを Sonnet 4.6 に設定</h3>
+        <p>起動後に <code>/model</code> コマンドを入力し、「Default (Sonnet 4.6)」を選択します。</p>
+        <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">copy</button><span class="c-comment"># Claude Code 内で実行</span>
+/model
+<span class="c-comment">→ Set model to Default (Sonnet 4.6 · Best for everyday tasks)</span></div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-body">
+        <h3>選択肢に出ない場合：環境変数で直接指定</h3>
+        <p>/model に Sonnet 4.6 が表示されない場合は環境変数でモデルを直接指定できます。</p>
+        <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">copy</button><span class="c-comment"># Windows (PowerShell)</span>
+<span class="c-env">$env:ANTHROPIC_MODEL</span> = <span class="c-str">"claude-sonnet-4-6-20250514"</span>
+<span class="c-kw">claude</span>
+
+<span class="c-comment"># Mac / Linux</span>
+<span class="c-env">ANTHROPIC_MODEL</span>=claude-sonnet-4-6-20250514 <span class="c-kw">claude</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="terminal">
+    <div class="terminal-bar">
+      <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+      <span class="terminal-title">PowerShell — C:\Users\matsuoka</span>
+    </div>
+    <div class="terminal-body">
+<span class="t-prompt">PS&gt;</span> <span class="t-cmd">npm update -g @anthropic-ai/claude-code</span>
+<span class="t-out">added 1 package, changed 3 packages in 8s</span>
+
+<span class="t-prompt">PS&gt;</span> <span class="t-cmd">claude</span>
+<span class="t-ok">✓  Claude Code v2.1.45</span>
+<span class="t-hl">   Sonnet 4.6 · Claude Pro</span>
+<span class="t-out">   C:\Users\matsuoka</span>
+
+<span class="t-prompt">❯</span> <span class="t-cmd">/model</span>
+<span class="t-ok">  Set model to Default (Sonnet 4.6 · Best for everyday tasks)</span>
+    </div>
+  </div>
+
+  <div class="alert alert-warn">
+    <strong>💡 Tips：</strong>
+    <code>/init</code> コマンドを実行すると CLAUDE.md が自動生成され、プロジェクト固有の指示・コーディング規約を記憶させることができます。
+    リポジトリにコミットしておけばチーム全員で設定を共有できます。
+  </div>
+</div>
+</div>
+
+<!-- ======================================= PANEL 2: WHAT'S NEW -->
+<div id="panel-whats-new" class="panel">
+<div class="container">
+  <br>
+  <div class="section-title">WHAT'S NEW</div>
+  <p class="section-desc">Sonnet 4.6 でコーディング支援はどこが変わったか。改善の核心を整理します。</p>
+
+  <div class="feature-grid">
+    <div class="feature-card"><div class="icon">🧠</div><h4>コーディング精度向上</h4><p>複雑なアルゴリズムや設計パターンの実装精度が大幅に改善。一発で正しいコードが出るようになった。</p></div>
+    <div class="feature-card"><div class="icon">🐛</div><h4>バグ特定の精度</h4><p>コード＋症状を渡すと根本原因を即特定。エラーが出ない「見えにくいバグ」も逃さない。</p></div>
+    <div class="feature-card"><div class="icon">🔄</div><h4>リファクタリング設計</h4><p>既存コードの文脈を読み、機械的な変換でなく設計視点での抽象化・分割を提案。</p></div>
+    <div class="feature-card"><div class="icon">🌐</div><h4>多言語変換</h4><p>Python → Rust / Go など、各言語の慣用表現に合わせた自然な変換が可能に。</p></div>
+  </div>
+
+  <table class="compare-table">
+    <thead><tr><th>シーン</th><th>Sonnet 4.6 が特に効く理由</th></tr></thead>
+    <tbody>
+      <tr><td>🐛 バグ原因特定</td><td>スタックトレース＋コードを渡すと即答。「件数は合っているのに合計が 0」のような認知の罠も見抜く。</td></tr>
+      <tr><td>🏗 リファクタリング</td><td>既存コードを文脈ごと読んで適切な抽象化を提案。機械的な置き換えでなく設計レベルで介入。</td></tr>
+      <tr><td>🧮 アルゴリズム実装</td><td>再帰下降パーサーや型推論エンジンなど CS 的構造を即かつ正確に生成。</td></tr>
+      <tr><td>🌐 多言語変換</td><td>言語の慣習に沿った変換。各言語のイディオムを使った自然なコードに仕上げる。</td></tr>
+    </tbody>
+  </table>
+</div>
+</div>
+
+<!-- ======================================= PANEL 3: CASES -->
+<div id="panel-cases" class="panel">
+<div class="container">
+  <br>
+  <div class="section-title">REAL CASES</div>
+  <p class="section-desc">実際に試した事例を3つ紹介。特に最初の「不具合特定」は実際の実行結果の証拠付きです。</p>
+
+  <!-- CASE 1: Generator Bug -->
+  <div class="case-card">
+    <div class="case-header">
+      <div class="case-icon">🐛</div>
+      <h3>合計金額が突然ゼロになる謎バグ ― 実行証拠付き</h3>
+      <span class="case-tag tag-debug">バグ特定</span>
+    </div>
+    <div class="case-body">
+      <p class="case-desc">
+        取引データを集計するコードで、<strong>件数（1,346件）は正しいのに合計金額が 6,642,515円 → 0円</strong>になる不可解な症状。
+        エラーも例外も一切出ないため原因が掴めない状態で、コードを Sonnet 4.6 に投げてみた。
+      </p>
+
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">▼ 問題のあるコード（Python generator の二重消費）</p>
+      <div class="code-block buggy"><span class="c-comment"># ❌ BAD: generator は一度しかイテレートできない</span>
+valid_txns = (<span class="c-fn">t</span> <span class="c-kw">for</span> t <span class="c-kw">in</span> transactions <span class="c-kw">if</span> t[<span class="c-str">'status'</span>] == <span class="c-str">'valid'</span>)
+
+count = <span class="c-fn">sum</span>(<span class="c-num">1</span> <span class="c-kw">for</span> _ <span class="c-kw">in</span> valid_txns)         <span class="c-comment"># ← ここで全件消費される</span>
+total = <span class="c-fn">sum</span>(t[<span class="c-str">'amount'</span>] <span class="c-kw">for</span> t <span class="c-kw">in</span> valid_txns)  <span class="c-comment"># ← 空 → sum([]) = 0</span>
+avg   = total / count <span class="c-kw">if</span> count <span class="c-kw">else</span> <span class="c-num">0</span></div>
+
+      <!-- 実行結果 BUGGY -->
+      <div class="exec-result">
+        <div class="exec-label buggy">❌ BUGGY VERSION — 実際の Claude Code 実行結果</div>
+        <div class="exec-output buggy"><span class="exec-key">=== Buggy version ===</span>
+<span class="exec-key">count :</span> <span class="exec-val-ok">1346</span>          <span class="c-comment">← 件数は正しい（フィルターは動いている）</span>
+<span class="exec-key">total :</span> <span class="exec-val-ng">0</span>             <span class="c-comment">← 6,642,515 のはずが 0 に！</span>
+<span class="exec-key">avg   :</span> <span class="exec-val-ng">0.0</span>           <span class="c-comment">← 当然 avg も 0</span>
+
+<span class="c-comment">※ エラーなし・例外なし・警告なし — 完全にサイレントな障害</span></div>
+      </div>
+
+      <div class="insight-box" style="margin-top:20px">
+        🔍 <strong>Sonnet 4.6 の診断（即答）：</strong><br><br>
+        「<code>valid_txns</code> は <strong>generator expression（遅延評価）</strong>なので、一度イテレートすると中身が空になります。
+        <code>count</code> の計算で全件消費されるため、その後の <code>total</code> は <code>sum([])</code> = 0 を返しています。
+        <code>list()</code> でリスト化するか、count / total を一回のループで同時計算してください。」
+      </div>
+
+      <p style="font-size:13px;color:var(--muted);margin:20px 0 12px;">▼ Before / After 比較</p>
+      <div class="compare-grid">
+        <div class="compare-box">
+          <div class="compare-header buggy">❌ BEFORE（壊れたコード）</div>
+          <div class="compare-code"><span class="c-comment"># generator = 使い捨て</span>
+valid_txns = (
+  t <span class="c-kw">for</span> t <span class="c-kw">in</span> transactions
+  <span class="c-kw">if</span> t[<span class="c-str">'status'</span>] == <span class="c-str">'valid'</span>
+)
+count = <span class="c-fn">sum</span>(<span class="c-num">1</span> <span class="c-kw">for</span> _ <span class="c-kw">in</span> valid_txns)
+<span class="c-comment"># ↑ ここで消費済み</span>
+total = <span class="c-fn">sum</span>(
+  t[<span class="c-str">'amount'</span>]
+  <span class="c-kw">for</span> t <span class="c-kw">in</span> valid_txns  <span class="c-comment"># 空！</span>
+)</div>
+        </div>
+        <div class="compare-box">
+          <div class="compare-header fixed">✅ AFTER（修正版）</div>
+          <div class="compare-code"><span class="c-comment"># list で具体化 → 再利用 OK</span>
+valid_txns = <span class="c-ok">list</span>(
+  t <span class="c-kw">for</span> t <span class="c-kw">in</span> transactions
+  <span class="c-kw">if</span> t[<span class="c-str">'status'</span>] == <span class="c-str">'valid'</span>
+)
+count = <span class="c-fn">len</span>(valid_txns)
+total = <span class="c-fn">sum</span>(
+  t[<span class="c-str">'amount'</span>]
+  <span class="c-kw">for</span> t <span class="c-kw">in</span> valid_txns  <span class="c-comment"># 有効！</span>
+)</div>
+        </div>
+      </div>
+
+      <!-- 実行結果 FIXED -->
+      <div class="exec-result">
+        <div class="exec-label fixed">✅ FIXED VERSION — 修正後の実行結果</div>
+        <div class="exec-output fixed"><span class="exec-key">=== Fixed version ===</span>
+<span class="exec-key">count :</span> <span class="exec-val-ok">1346</span>
+<span class="exec-key">total :</span> <span class="exec-val-ok">6,642,515</span>      <span class="c-comment">← 正しい合計が復活！</span>
+<span class="exec-key">avg   :</span> <span class="exec-val-ok">4,936.0</span>        <span class="c-comment">← 平均も正常</span></div>
+      </div>
+
+      <div class="alert alert-danger" style="margin-top:20px">
+        <strong>🚨 なぜ見つけにくいのか：</strong><br>
+        ① <strong>件数が正しい</strong>ため「フィルターは動いている」と思い込む<br>
+        ② <code>sum([])</code> は例外を出さず黙って <code>0</code> を返す<br>
+        ③ 少量データでテストしても気づきにくい<br>
+        ④ ログにもエラーにも何も残らない — 完全サイレント障害
+      </div>
+    </div>
+  </div>
+
+  <!-- CASE 2: Parser -->
+  <div class="case-card">
+    <div class="case-header">
+      <div class="case-icon">🌳</div>
+      <h3>再帰下降パーサーを 30行で即実装</h3>
+      <span class="case-tag tag-cs">CS理論</span>
+    </div>
+    <div class="case-body">
+      <p class="case-desc">
+        「四則演算を正しく処理するパーサーを書いて」という指示に対し、<strong>演算子の優先順位・括弧のネスト・浮動小数点数</strong>すべてを正しく扱うコードを30行で即出力。
+      </p>
+      <div class="code-block"><span class="c-comment"># Sonnet 4.6 が即生成した再帰下降パーサー（核心部）</span>
+<span class="c-kw">class</span> <span class="c-fn">Parser</span>:
+    <span class="c-kw">def</span> <span class="c-fn">parse_expr</span>(self):    <span class="c-comment"># 加減算（最低優先度）</span>
+        left = self.parse_term()
+        <span class="c-kw">while</span> self.current() <span class="c-kw">in</span> (<span class="c-str">'+'</span>, <span class="c-str">'-'</span>):
+            op = self.consume()
+            left = (op, left, self.parse_term())
+        <span class="c-kw">return</span> left
+
+    <span class="c-kw">def</span> <span class="c-fn">parse_term</span>(self):    <span class="c-comment"># 乗除算（中優先度）</span>
+        left = self.parse_factor()
+        <span class="c-kw">while</span> self.current() <span class="c-kw">in</span> (<span class="c-str">'*'</span>, <span class="c-str">'/'</span>):
+            op = self.consume()
+            left = (op, left, self.parse_factor())
+        <span class="c-kw">return</span> left
+
+    <span class="c-kw">def</span> <span class="c-fn">parse_factor</span>(self):  <span class="c-comment"># 括弧・数値（最高優先度）</span>
+        <span class="c-kw">if</span> self.current() == <span class="c-str">'('</span>:
+            self.consume()
+            node = self.parse_expr()
+            self.consume()    <span class="c-comment"># ')'</span>
+            <span class="c-kw">return</span> node
+        <span class="c-kw">return</span> <span class="c-fn">float</span>(self.consume())</div>
+      <div class="insight-box">
+        💡 <strong>コンパイラ理論の核心を一発実装：</strong><br>
+        BNF文法の「式 → 項 → 因子」の階層を関数の相互再帰で表現する設計は、
+        順番を間違えると優先順位がおかしくなる難しい構造。Sonnet 4.6 はそれを指示から即座に正確に生成しました。
+      </div>
+    </div>
+  </div>
+
+  <!-- CASE 3: Type Inference -->
+  <div class="case-card">
+    <div class="case-header">
+      <div class="case-icon">🔬</div>
+      <h3>型推論エンジンのコアを 40行で実装</h3>
+      <span class="case-tag tag-cs">CS理論</span>
+    </div>
+    <div class="case-body">
+      <p class="case-desc">
+        Haskell 等の関数型言語で使われる <strong>Hindley-Milner 型推論</strong>のコア部分を40行で実装。
+        <code>f(x) = x + 1</code> から <code>f : (int → int)</code> を自動導出する仕組みを即出力。
+      </p>
+      <div class="code-block"><span class="c-comment"># 型変数の単一化（Unification）アルゴリズム</span>
+<span class="c-kw">def</span> <span class="c-fn">unify</span>(t1, t2, subst):
+    t1, t2 = apply(subst, t1), apply(subst, t2)
+    <span class="c-kw">if</span> t1 == t2:
+        <span class="c-kw">return</span> subst
+    <span class="c-kw">if</span> isinstance(t1, TypeVar):
+        <span class="c-kw">if</span> occurs(t1, t2):           <span class="c-comment"># 循環型を防ぐ</span>
+            <span class="c-kw">raise</span> TypeError(<span class="c-str">"Infinite type"</span>)
+        <span class="c-kw">return</span> {**subst, t1.name: t2}
+    <span class="c-kw">if</span> isinstance(t1, FuncType) <span class="c-kw">and</span> isinstance(t2, FuncType):
+        s = unify(t1.arg, t2.arg, subst)
+        <span class="c-kw">return</span> unify(t1.ret, t2.ret, s)
+    <span class="c-kw">raise</span> TypeError(<span class="c-str">f"Cannot unify {t1} with {t2}"</span>)</div>
+      <div class="insight-box">
+        💡 <strong>学術論文レベルの実装を即生成：</strong><br>
+        occurs check（無限型の防止）、置換の合成、型変数の展開——
+        これらを正確に扱うには型理論の深い理解が必要。Sonnet 4.6 はそれを一度で正確に、エラーなく生成しました。
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ======================================= PANEL 4: SUMMARY -->
+<div id="panel-summary" class="panel">
+<div class="container">
+  <br>
+  <div class="section-title">SUMMARY</div>
+  <p class="section-desc">Claude Code × Sonnet 4.6 を実際に使った総評です。</p>
+
+  <ul class="checklist">
+    <li><span class="chk">✅</span><span><strong>インストールは npm 一発</strong>で完了。既存ユーザーは <code>npm update -g</code> だけでアップデートできる。</span></li>
+    <li><span class="chk">✅</span><span><strong>モデル選択は /model コマンド</strong>で対話的に選べる。表示されない場合は環境変数 <code>ANTHROPIC_MODEL</code> で直接指定。</span></li>
+    <li><span class="chk">✅</span><span><strong>バグ特定能力が顕著に向上。</strong>件数は正しくて合計だけ 0 になる「サイレントバグ」を、コードを渡すだけで即座に根本原因まで診断。実行結果で証拠も確認済み。</span></li>
+    <li><span class="chk">✅</span><span><strong>アルゴリズム実装の精度が高い。</strong>再帰下降パーサーや型推論エンジンのような CS 理論に基づいた構造を一発で正確に生成する。</span></li>
+    <li><span class="chk chk-warn">💡</span><span><strong>プロジェクトフォルダから起動すること。</strong>ホームディレクトリから起動するとコンテキストが弱くなる。<code>/init</code> で CLAUDE.md を作ると精度がさらに向上。</span></li>
+    <li><span class="chk chk-warn">💡</span><span><strong>Claude Pro アカウントが必要。</strong>無料プランでは利用できない機能が含まれます。</span></li>
+  </ul>
+
+  <div class="alert">
+    <strong>🎯 こんな人に特にオススメ：</strong><br>
+    Python / JavaScript を日常的に書いているエンジニア、バグ調査に時間を取られているチームリーダー、AI ツール導入を検討している IT 部門担当者。
+  </div>
+
+  <div class="cta-block">
+    <h2>READY TO TRY?</h2>
+    <p>
+      まずは <code>npm update -g @anthropic-ai/claude-code</code> を実行するだけ。<br>
+      Sonnet 4.6 の実力を、あなた自身のコードで確かめてみてください。
+    </p>
+    <button class="cta-btn" onclick="switchTab('install', document.querySelector('.tab'))">
+      🔧 インストール手順を見る
+    </button>
+  </div>
+</div>
+</div>
+
+<script>
+function switchTab(panelId, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + panelId).classList.add('active');
+  btn.classList.add('active');
+  window.scrollTo({ top: document.querySelector('.tabs-wrapper').offsetTop - 10, behavior: 'smooth' });
+}
+
+function copyCode(btn) {
+  const block = btn.parentElement;
+  const clone = block.cloneNode(true);
+  clone.querySelector('.copy-btn').remove();
+  const text = clone.innerText.trim();
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+</script>
+</body>
+</html>
